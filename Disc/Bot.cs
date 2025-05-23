@@ -53,24 +53,32 @@ public class Bot
 
   /// <summary>
   /// Spins up the bot and causes infinite loop (while requested to be alive)
+  /// !!! Either IConfiguration must contain a token or one must be provided !!!
   /// </summary>
+  /// <param name="nToken">Optional: Discord bot token</param>
   /// <param name="nCancelToken">Cancellation token</param>
+  /// <exception cref="InvalidOperationException">Thrown when no token is provided</exception>
   /// <returns>Unused</returns>
-  public async Task StartMainAsync(CancellationToken? nCancelToken = null)
+  public async Task StartMainAsync(string? nToken = null, CancellationToken? nCancelToken = null)
   {
     // Check if the bot is already running
     if (this.KillBot == false)
       return; 
 
     IConfiguration config = ServiceManager.GetService<IConfiguration>();
-    if(config == null || string.IsNullOrEmpty(config[Configuration.Credentials.TokenKey]))
+    if(string.IsNullOrEmpty(nToken) && (config == null || string.IsNullOrEmpty(config[Configuration.Credentials.TokenKey])))
       throw new InvalidOperationException("A token must be provided!");
 
     this.KillBot = false;
 
     await CommandManager.LoadCommandsAsync();
     await EventManager.LoadEventsAsync();
-    await this.Client.LoginAsync(Discord.TokenType.Bot, config[Configuration.Credentials.TokenKey]);
+
+    string? token = nToken;
+    if(string.IsNullOrEmpty(token))
+      token = config[Configuration.Credentials.TokenKey]!;
+
+    await this.Client.LoginAsync(Discord.TokenType.Bot, token);
     await this.Client.StartAsync();
 
     // Loop with delay to ensure bot hasn't been told to die

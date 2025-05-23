@@ -14,7 +14,10 @@ public class Bot
   /// <summary>Command service - Note to self, check if needed as Im going off the old way of doing discord bots</summary>
   private CommandService CommandService { get; set; }
 
+  /// <summary>Indicates if bot should be killed/is dead</summary>
   private bool KillBot { get; set; } = true;
+
+  /// <summary>Delay for kill check in miliseconds</summary>
   private int DelaySecondInMiliSec { get; set; }
 
 

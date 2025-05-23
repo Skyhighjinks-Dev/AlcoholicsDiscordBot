@@ -9,7 +9,7 @@ public class Bot
   private DiscordSocketClient Client { get; set; }
   private CommandService CommandService { get; set; }
   private string DiscordToken { get; set; }
-  private bool KillBot { get; set; } = false;
+  private bool KillBot { get; set; } = true;
   private int DelaySecondInMiliSec { get; set; }
 
 
@@ -55,13 +55,29 @@ public class Bot
   /// <param name="nCancelToken">Cancellation token</param>
   /// <returns>Unused</returns>
   public async Task StartMainAsync(CancellationToken? nCancelToken = null)
-  { 
+  {
+    // Check if the bot is already running
+    if (this.KillBot == false)
+      return; 
+
+    this.KillBot = false;
+
     await CommandManager.LoadCommandsAsync();
-    //await EventManager.LoadEventsAsync();
+    await EventManager.LoadEventsAsync();
     await this.Client.LoginAsync(Discord.TokenType.Bot, this.DiscordToken);
     await this.Client.StartAsync();
 
     while(!this.KillBot)
       await Task.Delay(this.DelaySecondInMiliSec, nCancelToken ?? CancellationToken.None);
+
+    await this.Client.LogoutAsync();
+    await this.Client.StopAsync();
   }
+
+
+  /// <summary>
+  /// Logs t
+  /// </summary>
+  /// <returns></returns>
+  public async Task StopAsync() => this.KillBot = true;
 }

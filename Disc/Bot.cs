@@ -1,14 +1,19 @@
 ﻿using AlcoholicsDiscordBot.Disc.Managers;
+using AlcoholicsDiscordBot.Util;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AlcoholicsDiscordBot.Disc;
 public class Bot
 {
+  /// <summary>Discord Socket Client (the bot)</summary>
   private DiscordSocketClient Client { get; set; }
+
+  /// <summary>Command service - Note to self, check if needed as Im going off the old way of doing discord bots</summary>
   private CommandService CommandService { get; set; }
-  private string DiscordToken { get; set; }
+
   private bool KillBot { get; set; } = true;
   private int DelaySecondInMiliSec { get; set; }
 
@@ -20,15 +25,11 @@ public class Bot
   /// <param name="nCollection">Service collection with previous injected types</param>
   /// <param name="nKillCheckInMs">Kill check time in miliseconds (checks if kill command has been activated)</param>
   /// <exception cref="InvalidOperationException">Thrown when no token is provided</exception>
-  public Bot(string nToken, ServiceCollection nCollection, int nKillCheckInMs = 100)
+  public Bot(ServiceCollection nCollection, int nKillCheckInMs = 100)
   { 
-    if(string.IsNullOrEmpty(nToken))
-      throw new InvalidOperationException("Token must be provided!");
-
     if(nKillCheckInMs < 100)
       nKillCheckInMs = 100;
 
-    this.DiscordToken = nToken; // Replace with a DB call
     this.DelaySecondInMiliSec = nKillCheckInMs;
     this.Client = new DiscordSocketClient(new DiscordSocketConfig() { LogLevel = Discord.LogSeverity.Debug });
     this.CommandService = new CommandService(new CommandServiceConfig()
@@ -60,13 +61,18 @@ public class Bot
     if (this.KillBot == false)
       return; 
 
+    IConfiguration config = ServiceManager.GetService<IConfiguration>();
+    if(config == null || string.IsNullOrEmpty(config[Configuration.Credentials.TokenKey]))
+      throw new InvalidOperationException("A token must be provided!");
+
     this.KillBot = false;
 
     await CommandManager.LoadCommandsAsync();
     await EventManager.LoadEventsAsync();
-    await this.Client.LoginAsync(Discord.TokenType.Bot, this.DiscordToken);
+    await this.Client.LoginAsync(Discord.TokenType.Bot, config[Configuration.Credentials.TokenKey]);
     await this.Client.StartAsync();
 
+    // Loop with delay to ensure bot hasn't been told to die
     while(!this.KillBot)
       await Task.Delay(this.DelaySecondInMiliSec, nCancelToken ?? CancellationToken.None);
 

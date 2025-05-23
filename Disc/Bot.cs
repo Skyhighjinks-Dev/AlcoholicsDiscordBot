@@ -83,7 +83,7 @@ public class Bot
 
 
   /// <summary>
-  /// Logs t
+  /// Stops the application
   /// </summary>
   /// <returns></returns>
   public void Stop() => this.KillBot = true;

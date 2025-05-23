@@ -27,6 +27,7 @@ public class Bot
   /// <exception cref="InvalidOperationException">Thrown when no token is provided</exception>
   public Bot(ServiceCollection nCollection, int nKillCheckInMs = 100)
   { 
+    // Force 100ms as a minimum to avoid 
     if(nKillCheckInMs < 100)
       nKillCheckInMs = 100;
 
@@ -73,7 +74,7 @@ public class Bot
     await this.Client.StartAsync();
 
     // Loop with delay to ensure bot hasn't been told to die
-    while(!this.KillBot)
+    while(!this.KillBot || ((!nCancelToken?.IsCancellationRequested) ?? true))
       await Task.Delay(this.DelaySecondInMiliSec, nCancelToken ?? CancellationToken.None);
 
     await this.Client.LogoutAsync();

@@ -5,8 +5,6 @@ namespace AlcoholicsDiscordBot.Disc.Managers;
 public static class EventManager
 {
   private static DiscordSocketClient Client { get => ServiceManager.GetService<DiscordSocketClient>(); }
-  private static CommandService CommandService { get => ServiceManager.GetService<CommandService>(); }
-
 
   public static async Task LoadEventsAsync()
   { 

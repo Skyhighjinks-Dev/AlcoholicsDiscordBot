@@ -86,5 +86,5 @@ public class Bot
   /// Logs t
   /// </summary>
   /// <returns></returns>
-  public async Task StopAsync() => this.KillBot = true;
+  public void Stop() => this.KillBot = true;
 }
